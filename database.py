@@ -1,12 +1,13 @@
 import pymysql
 import pymysql.cursors
+import os
 
 def get_connection():
     return pymysql.connect(
-        host="127.0.0.1",
-        user="root",
-        password="",
-        database="aura_spa",
-        port=3306,
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT")),
         cursorclass=pymysql.cursors.DictCursor
     )
