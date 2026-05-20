@@ -14,8 +14,8 @@ if not os.path.exists("uploads"):
 # 🔥 CORS (para que frontend pueda conectarse)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://aura-spa-frontend.vercel.app"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
