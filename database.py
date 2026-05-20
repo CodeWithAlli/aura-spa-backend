@@ -1,13 +1,12 @@
-import pymysql
-import pymysql.cursors
+import psycopg2
+import psycopg2.extras
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_connection():
-    return pymysql.connect(
-        host=os.getenv("MYSQLHOST"),
-        user=os.getenv("MYSQLUSER"),
-        password=os.getenv("MYSQLPASSWORD"),
-        database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT")),
-        cursorclass=pymysql.cursors.DictCursor
+    return psycopg2.connect(
+        os.getenv("DATABASE_URL"),
+        cursor_factory=psycopg2.extras.RealDictCursor
     )

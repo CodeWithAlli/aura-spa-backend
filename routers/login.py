@@ -8,6 +8,18 @@ router = APIRouter(tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+def verify_password(plain: str, stored: str) -> bool:
+    """Verifica contraseña: soporta bcrypt y texto plano (para dev local)."""
+    # Si el hash luce como bcrypt, usar passlib
+    if stored.startswith("$2b$") or stored.startswith("$2a$"):
+        try:
+            return pwd_context.verify(plain, stored)
+        except Exception:
+            return False
+    # Contraseña en texto plano (usuarios insertados manualmente en dev)
+    return plain == stored
+
+
 @router.post("/login")
 def login(data: dict):
     conexion = get_connection()
@@ -19,7 +31,7 @@ def login(data: dict):
     cursor.close()
     conexion.close()
 
-    if not user or not pwd_context.verify(data["password"], user["password"]):
+    if not user or not verify_password(data["password"], user["password"]):
         return JSONResponse(status_code=401, content={"detail": "Credenciales inválidas"})
 
     return {
