@@ -25,4 +25,4 @@ def process_image(file: UploadFile):
 
     os.remove(temp)
 
-    return f"http://localhost:8000/uploads/{filename}"
+    return f"{os.getenv('BASE_URL', 'http://localhost:8000')}/uploads/{filename}"
