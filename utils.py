@@ -1,28 +1,49 @@
 import os
 import random
-import shutil
 from PIL import Image
 from fastapi import UploadFile, HTTPException
+from dotenv import load_dotenv
+import httpx
+import io
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+BUCKET = "imagenes"
 
 def process_image(file: UploadFile):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Solo imágenes permitidas")
 
-    filename = f"{random.randint(10000,99999)}.jpg"
-    path = os.path.join(UPLOAD_DIR, filename)
-    temp = path + "_tmp"
-
-    with open(temp, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    img = Image.open(temp)
+    # Leer y redimensionar imagen
+    contents = file.file.read()
+    img = Image.open(io.BytesIO(contents))
     img = img.convert("RGB")
     img.thumbnail((800, 800))
-    img.save(path, optimize=True, quality=70)
 
-    os.remove(temp)
+    # Guardar en buffer
+    buffer = io.BytesIO()
+    img.save(buffer, format="JPEG", optimize=True, quality=70)
+    buffer.seek(0)
 
-    return f"{os.getenv('BASE_URL', 'http://localhost:8000')}/uploads/{filename}"
+    # Nombre único
+    filename = f"{random.randint(10000,99999)}.jpg"
+
+    # Subir a Supabase Storage
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "image/jpeg",
+    }
+
+    response = httpx.put(
+        f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{filename}",
+        content=buffer.read(),
+        headers=headers,
+    )
+
+    if response.status_code not in (200, 201):
+        raise HTTPException(status_code=500, detail="Error subiendo imagen")
+
+    return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{filename}"
