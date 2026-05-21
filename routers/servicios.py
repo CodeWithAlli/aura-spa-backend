@@ -26,11 +26,11 @@ def get_servicios_top():
     cursor = conexion.cursor()
     try:
         cursor.execute("""
-            SELECT * FROM servicios
-            WHERE destacado = 1
-            ORDER BY id DESC
-            LIMIT 6
-        """)
+    SELECT * FROM servicios
+    WHERE destacado = TRUE
+    ORDER BY id DESC
+    LIMIT 6
+""")
         return cursor.fetchall()
     finally:
         cursor.close()
@@ -53,7 +53,7 @@ def create_servicio(
     try:
         # límite destacados
         if destacado:
-            cursor.execute("SELECT COUNT(*) as total FROM servicios WHERE destacado=1")
+            cursor.execute("SELECT COUNT(*) as total FROM servicios WHERE destacado=TRUE")
             if cursor.fetchone()["total"] >= 6:
                 raise HTTPException(400, "Máximo 6 destacados")
 
@@ -90,10 +90,10 @@ def update_servicio(
         # validar destacados
         if destacado:
             cursor.execute("""
-                SELECT COUNT(*) as total 
-                FROM servicios 
-                WHERE destacado=1 AND id != %s
-            """, (id,))
+    SELECT COUNT(*) as total 
+    FROM servicios 
+    WHERE destacado=TRUE AND id != %s
+""", (id,))
             if cursor.fetchone()["total"] >= 6:
                 raise HTTPException(400, "Máximo 6 destacados")
 
